@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import classes from "./Layout.module.scss";
+import { Link } from "react-router-dom";
 
 interface LayoutProp {
   children: ReactNode;
@@ -10,9 +11,9 @@ export function Layout({ children, className }: LayoutProp) {
   return (
     <div className={`${classes.root} ${className}`}>
       <header className={classes.container}>
-        <a href="/">
+        <Link to="/">
           <img src="/logo.svg" alt="" className={classes.logo} />
-        </a>
+        </Link>
       </header>
       <main className={classes.container}>{children}</main>
       <footer>
@@ -25,7 +26,7 @@ export function Layout({ children, className }: LayoutProp) {
             <a href="">Accessibility</a>
           </li>
           <li>
-            <a href="">user Agreement</a>
+            <a href="">User Agreement</a>
           </li>
           <li>
             <a href="">Privacy Policy</a>

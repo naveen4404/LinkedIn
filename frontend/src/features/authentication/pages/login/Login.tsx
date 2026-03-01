@@ -1,22 +1,62 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Box } from "../../components/box/Box";
 import { Button } from "../../components/button/Button";
 import { Input } from "../../components/input/Input";
 import { Layout } from "../../components/layout/Layout";
 import classes from "./Login.module.scss";
 import { Seperator } from "../../components/seperator/Seperator";
+import { useState, type SubmitEvent } from "react";
+import { useAuthentication } from "../../contexts/AuthenticationContextProvider";
 
 export function Login() {
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuthentication();
+  const doLogin = async (e: SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const email = e.currentTarget.email.value;
+    const password = e.currentTarget.password.value;
+    try {
+      await login(email, password);
+      const destination = location.state?.from || "/";
+      navigate(destination);
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Unknown error occured");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Layout className={classes.root}>
       <Box>
         <h1>Sign in</h1>
         <p>Stay updated on your professional world.</p>
-        <Input label="Email" type="email" id="email"></Input>
-        <Input label="Password" type="password" id="password"></Input>
-        <Button type="submit" outline={false}>
-          sign in
-        </Button>
+        <form onSubmit={doLogin}>
+          <Input
+            label="Email"
+            type="email"
+            id="email"
+            onFocus={() => setErrorMessage("")}
+          ></Input>
+          <Input
+            label="Password"
+            type="password"
+            id="password"
+            onFocus={() => setErrorMessage("")}
+          ></Input>
+          {errorMessage && <div className={classes.error}>{errorMessage}</div>}
+          <Button type="submit" outline={false} disabled={isLoading}>
+            {isLoading ? "Signing in..." : "sign in"}
+          </Button>
+        </form>
         <Link to="/request-password-reset">Forgot password?</Link>
       </Box>
       <Seperator>Or</Seperator>

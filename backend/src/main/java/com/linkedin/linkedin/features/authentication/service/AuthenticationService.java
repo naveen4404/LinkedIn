@@ -184,7 +184,7 @@ public class AuthenticationService {
                 && user.get().getPasswordResetTokenExpiryDate().isBefore(LocalDateTime.now())){
             throw new IllegalArgumentException("Password reset token expired");
         }else{
-            throw new IllegalArgumentException("Password reset token filed");
+            throw new IllegalArgumentException("Password reset token failed");
         }
     }
 }

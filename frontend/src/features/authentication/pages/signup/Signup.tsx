@@ -1,30 +1,67 @@
-import { useState } from "react";
+import { useState, type SubmitEvent } from "react";
 import { Box } from "../../components/box/Box";
 import { Button } from "../../components/button/Button";
 import { Input } from "../../components/input/Input";
 import { Layout } from "../../components/layout/Layout";
 import classes from "./Signup.module.scss";
 import { Seperator } from "../../components/seperator/Seperator";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthentication } from "../../contexts/AuthenticationContextProvider";
 
 export function Signup() {
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+  const { signup } = useAuthentication();
+
+  const handleSignUp = async (e: SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const email = e.currentTarget.email.value;
+    const password = e.currentTarget.password.value;
+    try {
+      await signup(email, password);
+      navigate("/");
+    } catch (error) {
+      if (error instanceof Error) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Something went wrong");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Layout className={classes.root}>
       <Box>
         <h1>Sign up</h1>
         <p>Make the most of your professional life.</p>
-        <form>
-          <Input label="Email" type="email" id="email"></Input>
-          <Input label="Password" type="password" id="password"></Input>
-          {errorMessage && <p className={classes.error}>error</p>}
+        <form onSubmit={handleSignUp}>
+          <Input
+            label="Email"
+            type="email"
+            id="email"
+            name="email"
+            onFocus={() => {
+              setErrorMessage("");
+            }}
+          ></Input>
+          <Input
+            label="Password"
+            type="password"
+            id="password"
+            name="password"
+          ></Input>
+          {errorMessage && <p className={classes.error}>{errorMessage}</p>}
           <p className={classes.disclaimer}>
             By clicking Agree & Join or Continue, you agree to LinkedIn's{" "}
             <a href="">User Agreement</a>, <a href="">Privacy Policy</a>, and{" "}
             <a href="">Cookie Policy</a>.
           </p>
-          <Button outline={false} type="submit">
-            Agree & join
+          <Button outline={false} type="submit" disabled={isLoading}>
+            {isLoading ? "Signing in..." : "Agree & join"}
           </Button>
         </form>
         <Seperator>Or</Seperator>

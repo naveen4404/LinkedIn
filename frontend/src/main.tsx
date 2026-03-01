@@ -6,27 +6,35 @@ import { EmailVerification } from "./features/authentication/pages/email-verific
 import { Login } from "./features/authentication/pages/login/Login";
 import { Signup } from "./features/authentication/pages/signup/Signup";
 import { PasswordReset } from "./features/authentication/pages/password-reset/PasswordReset";
+import { Feed } from "./features/feed/pages/Feed";
+import { AuthenticationContextProvider } from "./features/authentication/contexts/AuthenticationContextProvider";
 
 const router = createBrowserRouter([
   {
-    path: "/",
-    element: "Home",
-  },
-  {
-    path: "/login",
-    element: <Login />,
-  },
-  {
-    path: "/signup",
-    element: <Signup />,
-  },
-  {
-    path: "/request-password-reset",
-    element: <PasswordReset />,
-  },
-  {
-    path: "/verify-email",
-    element: <EmailVerification />,
+    element: <AuthenticationContextProvider />,
+
+    children: [
+      {
+        path: "/",
+        element: <Feed />,
+      },
+      {
+        path: "/login",
+        element: <Login />,
+      },
+      {
+        path: "/signup",
+        element: <Signup />,
+      },
+      {
+        path: "/request-password-reset",
+        element: <PasswordReset />,
+      },
+      {
+        path: "/verify-email",
+        element: <EmailVerification />,
+      },
+    ],
   },
 ]);
 

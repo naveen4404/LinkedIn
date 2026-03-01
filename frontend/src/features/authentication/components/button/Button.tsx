@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes } from "react";
 import classes from "./Button.module.scss";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  outline: boolean;
+  outline?: boolean;
 };
 
 export function Button({ outline, ...options }: ButtonProps) {

@@ -14,13 +14,17 @@ public class AuthenticationUser {
     @Column(unique = true, nullable = false)
     private String email;
     private Boolean emailVerified = false;
+    @JsonIgnore
     private String emailVerificationToken = null;
+    @JsonIgnore
     private LocalDateTime emailVerificationTokenExpiryDate = null;
 
     @JsonIgnore
     @Column(nullable = false)
     private String password;
+    @JsonIgnore
     private String passwordResetToken = null;
+    @JsonIgnore
     private LocalDateTime passwordResetTokenExpiryDate = null;
     public AuthenticationUser() {
     }
