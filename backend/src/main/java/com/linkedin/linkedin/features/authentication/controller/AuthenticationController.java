@@ -1,11 +1,17 @@
 package com.linkedin.linkedin.features.authentication.controller;
 
+import com.linkedin.linkedin.exception.ForbiddenException;
 import com.linkedin.linkedin.features.authentication.dto.AuthenticationUserRequest;
 import com.linkedin.linkedin.features.authentication.dto.AuthenticationUserResponse;
 import com.linkedin.linkedin.features.authentication.model.AuthenticationUser;
 import com.linkedin.linkedin.features.authentication.service.AuthenticationService;
+import com.linkedin.linkedin.utils.SuccessResponse;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
@@ -16,6 +22,8 @@ public class AuthenticationController {
     
     private final AuthenticationService authenticationService;
 
+
+
     public AuthenticationController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
     }
@@ -24,6 +32,13 @@ public class AuthenticationController {
     @GetMapping("/user")
     public  AuthenticationUser getUser(@RequestAttribute("authenticatedUser") AuthenticationUser user){
         return user;
+    }
+
+    @DeleteMapping("/user")
+    public ResponseEntity<Void> deleteUser(@RequestAttribute("authenticatedUser") AuthenticationUser user){
+
+        authenticationService.deleteUser(user.getId());
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/register")
@@ -37,27 +52,44 @@ public class AuthenticationController {
     }
 
     @GetMapping("/send-email-verification-token")
-    public String sendEmailVerificationToken(@RequestAttribute("authenticatedUser") AuthenticationUser user){
+    public ResponseEntity<SuccessResponse> sendEmailVerificationToken(@RequestAttribute("authenticatedUser") AuthenticationUser user){
         authenticationService.sendEmailVerificationToken(user.getEmail());
-        return "Email verification token sent successfully.";
+        return ResponseEntity.ok(new SuccessResponse("Email verification token sent successfully.", HttpStatus.OK.value()));
     }
 
     @PutMapping("/validate-email-verification-token")
-    public String verifyEmail(@RequestParam String token, @RequestAttribute("authenticatedUser") AuthenticationUser user){
+    public ResponseEntity<SuccessResponse> verifyEmail(@RequestParam String token, @RequestAttribute("authenticatedUser") AuthenticationUser user){
         authenticationService.validateEmailVerificationToken(token, user.getEmail());
-        return "Email verified successfully.";
+        return ResponseEntity.ok(new SuccessResponse("Email verified successfully.", HttpStatus.OK.value()));
     }
 
     @PutMapping("/send-password-reset-token")
-    public String sendPasswordResetToken(@RequestParam String email){
+    public ResponseEntity<SuccessResponse> sendPasswordResetToken(@RequestParam String email){
         authenticationService.sendPasswordResetToken(email);
-        return "password reset token sent successfully.";
+        return ResponseEntity.ok(new SuccessResponse("password reset token sent successfully.", HttpStatus.OK.value()));
+
     }
 
     @PutMapping("/reset-password")
-    public String resetPassword(@RequestParam String newPassword, @RequestParam String token, @RequestParam String email){
+    public ResponseEntity<SuccessResponse> resetPassword(@RequestParam String newPassword, @RequestParam String token, @RequestParam String email){
         authenticationService.resetPassword(email,newPassword,token);
-        return "Password reset successful.";
+        return ResponseEntity.ok(new SuccessResponse("Password reset successful.", HttpStatus.OK.value()));
+
+    }
+    @PutMapping("/profile/{id}")
+    public ResponseEntity<AuthenticationUser>  updateUserProfile(@RequestAttribute("authenticatedUser") AuthenticationUser user,
+                                                 @PathVariable Long id,
+                                                 @RequestParam(required = false) String firstName,
+                                                 @RequestParam(required = false) String lastName,
+                                                 @RequestParam(required = false) String location,
+                                                 @RequestParam(required = false) String company,
+                                                 @RequestParam(required = false) String position
+                                                 ){
+        if(!user.getId().equals(id)){
+            throw  new ForbiddenException("Your are not authorized to do this");
+        }
+
+        return ResponseEntity.ok(authenticationService.updateUserProfile(id, firstName, lastName,location,company,position));
     }
 
 }

@@ -16,6 +16,8 @@ public class JsonWebToken {
     @Value("${jwt_secret}")
     private String secret;
 
+    // HMAC : Hash based message authentication code
+    // SHA : Secure hash algorithm
     private SecretKey getKey(){
         return Keys.hmacShaKeyFor(secret.getBytes());
     }

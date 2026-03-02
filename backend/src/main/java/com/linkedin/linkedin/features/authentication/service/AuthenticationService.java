@@ -1,5 +1,7 @@
 package com.linkedin.linkedin.features.authentication.service;
 
+import com.linkedin.linkedin.exception.BadRequestException;
+import com.linkedin.linkedin.exception.ResourceNotFoundException;
 import com.linkedin.linkedin.features.authentication.dto.AuthenticationUserRequest;
 import com.linkedin.linkedin.features.authentication.dto.AuthenticationUserResponse;
 import com.linkedin.linkedin.features.authentication.model.AuthenticationUser;
@@ -8,6 +10,10 @@ import com.linkedin.linkedin.features.authentication.utils.EmailService;
 import com.linkedin.linkedin.features.authentication.utils.Encoder;
 import com.linkedin.linkedin.features.authentication.utils.JsonWebToken;
 import jakarta.mail.MessagingException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Transient;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,6 +32,10 @@ public class AuthenticationService {
     private final Encoder encoder;
     private final JsonWebToken jsonWebToken;
     private final EmailService emailService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
     public AuthenticationService(AuthenticationUserRepository authenticationUserRepository, Encoder encoder, JsonWebToken jsonWebToken, EmailService emailService) {
         this.authenticationUserRepository = authenticationUserRepository;
         this.encoder = encoder;
@@ -70,7 +80,7 @@ public class AuthenticationService {
             }
 
         }else{
-            throw new IllegalArgumentException("Email verification token failed, or email is already verified");
+            throw new BadRequestException("Email verification token failed, or email is already verified");
         }
     }
 
@@ -87,14 +97,14 @@ public class AuthenticationService {
         } else if (user.isPresent()
                 && encoder.match(token, user.get().getEmailVerificationToken())
                 && user.get().getEmailVerificationTokenExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Email verification token expired");
+            throw new BadRequestException("Email verification token expired");
         }else{
-            throw new IllegalArgumentException("Email verification token failed");
+            throw new BadRequestException("Email verification token failed");
         }
     }
 
     public AuthenticationUser getUser(String email){
-        return authenticationUserRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return authenticationUserRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     public AuthenticationUserResponse register(AuthenticationUserRequest newUser) throws MessagingException, UnsupportedEncodingException {
@@ -130,7 +140,7 @@ public class AuthenticationService {
         AuthenticationUser user = getUser(loginUser.getEmail());
 
         if(!encoder.match(loginUser.getPassword(), user.getPassword())){
-            throw new IllegalArgumentException("Incorrect password");
+            throw new BadRequestException("Incorrect password");
         }
 
         String token = jsonWebToken.generateToken(loginUser.getEmail());
@@ -166,7 +176,7 @@ public class AuthenticationService {
             }
 
         }else{
-            throw new IllegalArgumentException("User not found");
+            throw new ResourceNotFoundException("User not found");
         }
     }
 
@@ -182,9 +192,47 @@ public class AuthenticationService {
         }else if(user.isPresent()
                 && encoder.match(token, user.get().getPasswordResetToken())
                 && user.get().getPasswordResetTokenExpiryDate().isBefore(LocalDateTime.now())){
-            throw new IllegalArgumentException("Password reset token expired");
+            throw new BadRequestException("Password reset token expired");
         }else{
-            throw new IllegalArgumentException("Password reset token failed");
+            throw new BadRequestException("Password reset token failed");
+        }
+    }
+
+    public AuthenticationUser updateUserProfile(Long id, String firstName, String lastName, String location, String company, String position) {
+
+        Optional<AuthenticationUser> user = authenticationUserRepository.findById(id);
+        if(user.isEmpty()){
+            throw new ResourceNotFoundException("User not found");
+        }
+
+        if(firstName!=null){
+            user.get().setFirstName(firstName);
+        }
+        if(lastName!=null){
+            user.get().setLastName(lastName);
+        }
+        if(location!=null){
+            user.get().setLocation(location);
+        }
+        if(company!=null){
+            user.get().setCompany(company);
+        }
+        if(position!=null){
+            user.get().setPosition(position);
+        }
+        authenticationUserRepository.save(user.get());
+        return user.get();
+
+    }
+
+    @Transactional
+    public void deleteUser(Long userId) {
+        AuthenticationUser user = entityManager.find(AuthenticationUser.class,userId);
+        if(user!=null){
+            entityManager.createNativeQuery("DELETE FROM posts_likes WHERE user_id = :userId")
+            .setParameter("userId",userId)
+            .executeUpdate();
+            entityManager.remove(user);
         }
     }
 }
