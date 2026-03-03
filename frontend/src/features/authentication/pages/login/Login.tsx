@@ -61,7 +61,7 @@ export function Login() {
       </Box>
       <Seperator>Or</Seperator>
       <div className={classes.register}>
-        New to LinkedIn? {<Link to="/signup">Join now</Link>}
+        New to Elevato? {<Link to="/signup">Join now</Link>}
       </div>
     </Layout>
   );

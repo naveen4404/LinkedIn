@@ -56,7 +56,7 @@ export function Signup() {
           ></Input>
           {errorMessage && <p className={classes.error}>{errorMessage}</p>}
           <p className={classes.disclaimer}>
-            By clicking Agree & Join or Continue, you agree to LinkedIn's{" "}
+            By clicking Agree & Join or Continue, you agree to Elevato's{" "}
             <a href="">User Agreement</a>, <a href="">Privacy Policy</a>, and{" "}
             <a href="">Cookie Policy</a>.
           </p>
@@ -66,7 +66,7 @@ export function Signup() {
         </form>
         <Seperator>Or</Seperator>
         <div className={classes.register}>
-          Already on LinkedIn? <Link to="/login">Sign in</Link>
+          Already on Elevato? <Link to="/login">Sign in</Link>
         </div>
       </Box>
     </Layout>

@@ -20,7 +20,7 @@ export function Layout({ children, className }: LayoutProp) {
         <ul className={classes.container}>
           <li>
             <img src="/logo-dark.svg" alt="" />
-            <span>2026</span>
+            <span>©2026</span>
           </li>
           <li>
             <a href="">Accessibility</a>
